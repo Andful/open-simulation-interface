@@ -1,0 +1,11 @@
+xsim.dir
+a.out
+*.vcd
+
+*.wdb
+*.log
+*.pb
+
+# Dosygen generated files
+html/ 
+latex/
