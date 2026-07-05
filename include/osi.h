@@ -29,7 +29,7 @@ typedef enum {
   INPUT_PORT,
   OUTPUT_PORT,
   INOUT_PORT
-} t_osi_port_kind;
+} t_osi_port_direction;
 
 typedef struct {
   t_osi_error_kind kind;
@@ -57,7 +57,7 @@ typedef t_osi_result (*t_fp_osi_get_time_precision)(t_osi_simulation_data,
                                                     uint32_t*);
 typedef t_osi_result (*t_fp_osi_get_port_direction)(t_osi_simulation_data,
                                                     t_osi_port,
-                                                    t_osi_port_kind*);
+                                                    t_osi_port_direction*);
 typedef t_osi_result (*t_fp_osi_get_port_width)(t_osi_simulation_data,
                                                 t_osi_port, uint32_t*);
 typedef t_osi_result (*t_fp_osi_get_port_by_name)(t_osi_simulation_data,
@@ -190,7 +190,7 @@ osi_xsi_impl_get_time_precision(t_osi_simulation_data simulation_data,
 
 t_osi_result
 osi_xsi_impl_get_port_direction(t_osi_simulation_data simulation_data,
-                                t_osi_port port, t_osi_port_kind* port_kind) {
+                                t_osi_port port, t_osi_port_direction* port_kind) {
   uint32_t index = 0;
   t_osi_result result =
       osi_xsi_impl_get_port_index(simulation_data, port, &index);
