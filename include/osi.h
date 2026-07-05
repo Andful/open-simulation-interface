@@ -74,8 +74,8 @@ typedef t_osi_result (*t_fp_osi_get_value)(t_osi_simulation_data, t_osi_port,
                                            t_osi_vecval*);
 typedef t_osi_result (*t_fp_osi_advance)(t_osi_simulation_data, uint64_t);
 typedef t_osi_result (*t_fp_osi_evaluate)(t_osi_simulation_data);
-typedef t_osi_result (*t_fp_osi_restart)(t_osi_simulation_data);
 typedef t_osi_result (*t_fp_osi_get_time)(t_osi_simulation_data, uint64_t*);
+typedef t_osi_result (*t_fp_osi_close)(t_osi_simulation_data);
 
 typedef struct {
   t_fp_osi_get_number_top_ports get_number_top_ports;
@@ -90,12 +90,14 @@ typedef struct {
   t_fp_osi_get_value get_value;
   t_fp_osi_advance advance;
   t_fp_osi_evaluate evaluate;
-  t_fp_osi_restart restart;
   t_fp_osi_get_time get_time;
+  t_fp_osi_close close;
   t_osi_simulation_data simulation_data;
-} t_simulation;
+} t_osi_simulation;
 
-#ifdef OSI_IMPLEMENT_XSI
+#ifndef OSI_IMPLEMENT_XSI
+typedef void t_osi_xsi_simulator;
+#else
 typedef struct {
   t_fp_xsi_get_port_number xsi_get_port_number;
   t_fp_xsi_get_port_name xsi_get_port_name;
@@ -113,10 +115,10 @@ typedef struct {
   t_fp_xsi_get_time xsi_get_time;
 
   void* simkernel_library;
-} t_xsi_simulator;
+} t_osi_xsi_simulator;
 
 typedef struct {
-  t_xsi_simulator* simulator;
+  t_osi_xsi_simulator* simulator;
   xsiHandle handle;
 } t_osi_xsi_simulation_data;
 
@@ -125,7 +127,7 @@ osi_xsi_impl_get_number_top_ports(t_osi_simulation_data simulation_data,
                                   uint32_t* num_ports) {
   t_osi_xsi_simulation_data* xsi_simulation_data =
       (t_osi_xsi_simulation_data*)simulation_data;
-  t_xsi_simulator* simulator = xsi_simulation_data->simulator;
+  t_osi_xsi_simulator* simulator = xsi_simulation_data->simulator;
   xsiHandle handle = xsi_simulation_data->handle;
   int32_t num =
       simulator->xsi_get_int(xsi_simulation_data->handle, xsiNumTopPorts);
@@ -199,7 +201,7 @@ osi_xsi_impl_get_port_direction(t_osi_simulation_data simulation_data,
 
   t_osi_xsi_simulation_data* xsi_simulation_data =
       (t_osi_xsi_simulation_data*)simulation_data;
-  t_xsi_simulator* simulator = xsi_simulation_data->simulator;
+  t_osi_xsi_simulator* simulator = xsi_simulation_data->simulator;
   xsiHandle handle = xsi_simulation_data->handle;
 
   uint32_t direction =
@@ -241,7 +243,7 @@ t_osi_result osi_xsi_impl_get_port_width(t_osi_simulation_data simulation_data,
 
   t_osi_xsi_simulation_data* xsi_simulation_data =
       (t_osi_xsi_simulation_data*)simulation_data;
-  t_xsi_simulator* simulator = xsi_simulation_data->simulator;
+  t_osi_xsi_simulator* simulator = xsi_simulation_data->simulator;
   xsiHandle handle = xsi_simulation_data->handle;
 
   *port_width = simulator->xsi_get_int_port(handle, index, xsiHDLValueSize);
@@ -266,7 +268,7 @@ osi_xsi_impl_get_port_by_name(t_osi_simulation_data simulation_data,
                               const char* port_name, t_osi_port* port) {
   t_osi_xsi_simulation_data* xsi_simulation_data =
       (t_osi_xsi_simulation_data*)simulation_data;
-  t_xsi_simulator* simulator = xsi_simulation_data->simulator;
+  t_osi_xsi_simulator* simulator = xsi_simulation_data->simulator;
   xsiHandle handle = xsi_simulation_data->handle;
 
   int32_t index = simulator->xsi_get_port_number(handle, port_name);
@@ -320,7 +322,7 @@ t_osi_result osi_xsi_impl_get_port_name(t_osi_simulation_data simulation_data,
                                         t_osi_port port, const char** name) {
   t_osi_xsi_simulation_data* xsi_simulation_data =
       (t_osi_xsi_simulation_data*)simulation_data;
-  t_xsi_simulator* simulator = xsi_simulation_data->simulator;
+  t_osi_xsi_simulator* simulator = xsi_simulation_data->simulator;
   xsiHandle handle = xsi_simulation_data->handle;
 
   uint32_t index = 0;
@@ -371,7 +373,7 @@ t_osi_result osi_xsi_impl_put_value(t_osi_simulation_data simulation_data,
 
   t_osi_xsi_simulation_data* xsi_simulation_data =
       (t_osi_xsi_simulation_data*)simulation_data;
-  t_xsi_simulator* simulator = xsi_simulation_data->simulator;
+  t_osi_xsi_simulator* simulator = xsi_simulation_data->simulator;
   xsiHandle handle = xsi_simulation_data->handle;
 
   simulator->xsi_put_value(handle, (int32_t)index, value);
@@ -402,7 +404,7 @@ t_osi_result osi_xsi_impl_get_value(t_osi_simulation_data simulation_data,
 
   t_osi_xsi_simulation_data* xsi_simulation_data =
       (t_osi_xsi_simulation_data*)simulation_data;
-  t_xsi_simulator* simulator = xsi_simulation_data->simulator;
+  t_osi_xsi_simulator* simulator = xsi_simulation_data->simulator;
   xsiHandle handle = xsi_simulation_data->handle;
 
   simulator->xsi_get_value(handle, (int32_t)index, value);
@@ -426,7 +428,7 @@ t_osi_result osi_xsi_impl_advance(t_osi_simulation_data simulation_data,
                                   uint64_t delta_time) {
   t_osi_xsi_simulation_data* xsi_simulation_data =
       (t_osi_xsi_simulation_data*)simulation_data;
-  t_xsi_simulator* simulator = xsi_simulation_data->simulator;
+  t_osi_xsi_simulator* simulator = xsi_simulation_data->simulator;
   xsiHandle handle = xsi_simulation_data->handle;
 
   simulator->xsi_run(handle, (int64_t)delta_time);
@@ -449,20 +451,8 @@ t_osi_result osi_xsi_impl_evaluate(t_osi_simulation_data simulation_data) {
   return osi_xsi_impl_advance(simulation_data, 0);
 }
 
-t_osi_result osi_xsi_impl_restart(t_osi_simulation_data simulation_data) {
-  t_osi_xsi_simulation_data* xsi_simulation_data =
-      (t_osi_xsi_simulation_data*)simulation_data;
-  t_xsi_simulator* simulator = xsi_simulation_data->simulator;
-  xsiHandle handle = xsi_simulation_data->handle;
-
-  simulator->xsi_restart(handle);
-  if (simulator->xsi_get_status(handle) != xsiNormal) {
-    return (t_osi_result){
-        .kind = SIM_ERROR,
-        .msg = simulator->xsi_get_error_info(handle),
-        .arg = NULL,
-    };
-  }
+t_osi_result osi_xsi_impl_close(t_osi_simulation_data simulation_data) {
+  //TODO
   return (t_osi_result){
       .kind = OK,
       .msg = NULL,
@@ -474,7 +464,7 @@ t_osi_result osi_xsi_impl_get_time(t_osi_simulation_data simulation_data,
                                    uint64_t* time) {
   t_osi_xsi_simulation_data* xsi_simulation_data =
       (t_osi_xsi_simulation_data*)simulation_data;
-  t_xsi_simulator* simulator = xsi_simulation_data->simulator;
+  t_osi_xsi_simulator* simulator = xsi_simulation_data->simulator;
   xsiHandle handle = xsi_simulation_data->handle;
   *time = xsi_simulation_data->simulator->xsi_get_time(handle);
   if (simulator->xsi_get_status(handle) != xsiNormal) {
@@ -501,7 +491,7 @@ bool osi_xsi_implemented(void) {
 }
 
 t_osi_result osi_create_xsi_simulator(const char* simkernel_libname,
-                                      t_xsi_simulator* simulator) {
+                                      t_osi_xsi_simulator* simulator) {
   assert(simkernel_libname);
   assert(simulator);
 #ifndef OSI_IMPLEMENT_XSI
@@ -549,7 +539,7 @@ t_osi_result osi_create_xsi_simulator(const char* simkernel_libname,
 #endif
 }
 
-t_osi_result osi_destroy_xsi_simulator(t_xsi_simulator* simulator) {
+t_osi_result osi_destroy_xsi_simulator(t_osi_xsi_simulator* simulator) {
 #ifndef OSI_IMPLEMENT_XSI
   return (t_osi_result){
       .kind = NOT_IMPLEMENTED_ERROR,
@@ -574,9 +564,9 @@ t_osi_result osi_destroy_xsi_simulator(t_xsi_simulator* simulator) {
 #endif
 }
 
-t_osi_result osi_start_xsi_simulation(t_xsi_simulator* simulator,
+t_osi_result osi_start_xsi_simulation(t_osi_xsi_simulator* simulator,
                                       const char* design_libname,
-                                      t_simulation* simulation,
+                                      t_osi_simulation* simulation,
                                       const char* log_file,
                                       const char* wdb_file) {
   assert(simulator);
@@ -641,8 +631,8 @@ t_osi_result osi_start_xsi_simulation(t_xsi_simulator* simulator,
   simulation->get_value = osi_xsi_impl_get_value;
   simulation->advance = osi_xsi_impl_advance;
   simulation->evaluate = osi_xsi_impl_evaluate;
-  simulation->restart = osi_xsi_impl_restart;
   simulation->get_time = osi_xsi_impl_get_time;
+  simulation->close = osi_xsi_impl_close;
   simulation->simulation_data = (void*)xsi_simulation_data;
 
   return (t_osi_result){
@@ -653,7 +643,7 @@ t_osi_result osi_start_xsi_simulation(t_xsi_simulator* simulator,
 #endif
 }
 
-t_osi_result osi_end_xsi_simulation(t_simulation* simulation) {
+t_osi_result osi_end_xsi_simulation(t_osi_simulation* simulation) {
 #ifndef OSI_IMPLEMENT_XSI
   return (t_osi_result){
       .kind = NOT_IMPLEMENTED_ERROR,
