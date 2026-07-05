@@ -26,9 +26,9 @@ typedef enum {
 } t_osi_error_kind;
 
 typedef enum {
-  INPUT_PORT,
-  OUTPUT_PORT,
-  INOUT_PORT
+  INPUT,
+  OUTPUT,
+  INOUT
 } t_osi_port_direction;
 
 typedef struct {
@@ -216,11 +216,11 @@ osi_xsi_impl_get_port_direction(t_osi_simulation_data simulation_data,
   }
 
   if (direction == xsiInputPort) {
-    *port_kind = INPUT_PORT;
+    *port_kind = INPUT;
   } else if (direction == xsiOutputPort) {
-    *port_kind = OUTPUT_PORT;
+    *port_kind = OUTPUT;
   } else {
-    *port_kind = INOUT_PORT;
+    *port_kind = INOUT;
   }
 
   return (t_osi_result){
