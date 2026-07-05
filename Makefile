@@ -23,10 +23,10 @@ all:
 	$(C_COMPILER) $(CFLAGS) $(INC_DIRS) test.c
 
 format:
-	clang-format -i test.c test/tests.c osi.h
+	clang-format -i test/tests.c include/osi.h
 
 lint:
-	clang-tidy test.c -header-filter=.* -- $(CFLAGS) $(INC_DIRS)
+	clang-tidy include/osi.h -header-filter=.* -- $(CFLAGS) $(INC_DIRS) -DOSI_IMPLEMENT_XSI
 
 docs:
 	doxygen

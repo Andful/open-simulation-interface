@@ -452,7 +452,12 @@ t_osi_result osi_xsi_impl_evaluate(t_osi_simulation_data simulation_data) {
 }
 
 t_osi_result osi_xsi_impl_close(t_osi_simulation_data simulation_data) {
-  //TODO
+  t_osi_xsi_simulation_data* xsi_simulation_data =
+      (t_osi_xsi_simulation_data*)simulation_data;
+
+  xsi_simulation_data->simulator->xsi_close(xsi_simulation_data->handle);
+  free(xsi_simulation_data);
+
   return (t_osi_result){
       .kind = OK,
       .msg = NULL,
@@ -541,6 +546,7 @@ t_osi_result osi_create_xsi_simulator(const char* simkernel_libname,
 
 t_osi_result osi_destroy_xsi_simulator(t_osi_xsi_simulator* simulator) {
 #ifndef OSI_IMPLEMENT_XSI
+  (void)simulator;
   return (t_osi_result){
       .kind = NOT_IMPLEMENTED_ERROR,
       .msg = "Not implemented because OSI_IMPLEMENT_XSI is not defined",
@@ -571,8 +577,10 @@ t_osi_result osi_start_xsi_simulation(t_osi_xsi_simulator* simulator,
                                       const char* wdb_file) {
   assert(simulator);
   assert(design_libname);
-  assert(simulator);
+  assert(simulation);
 #ifndef OSI_IMPLEMENT_XSI
+  (void)log_file;
+  (void)wdb_file;
   return (t_osi_result){
       .kind = NOT_IMPLEMENTED_ERROR,
       .msg = "Not implemented because OSI_IMPLEMENT_XSI is not defined",
@@ -634,28 +642,6 @@ t_osi_result osi_start_xsi_simulation(t_osi_xsi_simulator* simulator,
   simulation->get_time = osi_xsi_impl_get_time;
   simulation->close = osi_xsi_impl_close;
   simulation->simulation_data = (void*)xsi_simulation_data;
-
-  return (t_osi_result){
-      .kind = OK,
-      .msg = NULL,
-      .arg = NULL,
-  };
-#endif
-}
-
-t_osi_result osi_end_xsi_simulation(t_osi_simulation* simulation) {
-#ifndef OSI_IMPLEMENT_XSI
-  return (t_osi_result){
-      .kind = NOT_IMPLEMENTED_ERROR,
-      .msg = "Not implemented because OSI_IMPLEMENT_XSI is not defined",
-      .arg = NULL,
-  };
-#else
-  t_osi_xsi_simulation_data* xsi_simulation_data =
-      (t_osi_xsi_simulation_data*)simulation->simulation_data;
-
-  xsi_simulation_data->simulator->xsi_close(xsi_simulation_data->handle);
-  free(xsi_simulation_data);
 
   return (t_osi_result){
       .kind = OK,

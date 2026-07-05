@@ -22,7 +22,8 @@ void test_xsi(void) {
   CHECK(osi_create_xsi_simulator("libxv_simulator_kernel.so", &simulator));
 
   t_simulation simulation;
-  CHECK(osi_start_xsi_simulation(&simulator, "xsimk.so", &simulation, NULL, NULL));
+  CHECK(osi_start_xsi_simulation(&simulator, "xsimk.so", &simulation, NULL,
+                                 NULL));
 
   t_osi_port clk;
   CHECK(simulation.get_port_by_name(simulation.simulation_data, "clk", &clk));
