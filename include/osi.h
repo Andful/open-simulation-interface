@@ -506,14 +506,14 @@ t_osi_result osi_create_xsi_simulator(const char* simkernel_libname,
       .arg = NULL,
   };
 #else
-  void* simkernel_library = dlopen(simkernel_libname, RTLD_LAZY | RTLD_GLOBAL);
+  simulator->simkernel_library = dlopen(simkernel_libname, RTLD_LAZY | RTLD_GLOBAL);
   char* err = dlerror();
   if (err) {
     return (t_osi_result){.kind = DL_ERROR, .msg = err, .arg = NULL};
   }
 
 #define OSI_LOAD_XSI_FUNC(x)                                                   \
-  *(void**)(&simulator->x) = dlsym(simkernel_library, #x);                     \
+  *(void**)(&simulator->x) = dlsym(simulator->simkernel_library, #x);                     \
   err = dlerror();                                                             \
   if (err) {                                                                   \
     return (t_osi_result){.kind = DL_ERROR, .msg = err, .arg = NULL};          \
