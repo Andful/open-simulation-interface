@@ -620,8 +620,6 @@ t_osi_result osi_start_xsi_simulation(t_osi_xsi_simulator* simulator,
   info.wdbFileName = (char*)wdb_file; // I think conversion to char* is fine
   xsiHandle handle = xsi_open(&info);
 
-  simulator->xsi_get_int(handle, xsiNumTopPorts);
-
   t_osi_xsi_simulation_data* xsi_simulation_data =
       malloc(sizeof(t_osi_xsi_simulation_data));
   xsi_simulation_data->simulator = simulator;
