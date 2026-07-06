@@ -70,8 +70,8 @@ typedef t_osi_result (*t_fp_osi_get_port_index)(t_osi_simulation_data,
                                                 const t_osi_port, uint32_t*);
 typedef t_osi_result (*t_fp_osi_put_value)(t_osi_simulation_data, t_osi_port,
                                            const t_osi_vecval*);
-typedef t_osi_result (*t_fp_osi_get_value)(t_osi_simulation_data, const t_osi_port,
-                                           t_osi_vecval*);
+typedef t_osi_result (*t_fp_osi_get_value)(t_osi_simulation_data,
+                                           const t_osi_port, t_osi_vecval*);
 typedef t_osi_result (*t_fp_osi_advance)(t_osi_simulation_data, uint64_t);
 typedef t_osi_result (*t_fp_osi_evaluate)(t_osi_simulation_data);
 typedef t_osi_result (*t_fp_osi_get_time)(t_osi_simulation_data, uint64_t*);
@@ -190,7 +190,8 @@ osi_xsi_impl_get_time_precision(t_osi_simulation_data simulation_data,
 
 t_osi_result
 osi_xsi_impl_get_port_direction(t_osi_simulation_data simulation_data,
-                                t_osi_port port, t_osi_port_direction* port_kind) {
+                                t_osi_port port,
+                                t_osi_port_direction* port_kind) {
   uint32_t index = 0;
   t_osi_result result =
       osi_xsi_impl_get_port_index(simulation_data, port, &index);
@@ -359,7 +360,8 @@ t_osi_result osi_xsi_impl_get_port_name(t_osi_simulation_data simulation_data,
 }
 
 t_osi_result osi_xsi_impl_put_value(t_osi_simulation_data simulation_data,
-                                    t_osi_port port, const t_osi_vecval* value) {
+                                    t_osi_port port,
+                                    const t_osi_vecval* value) {
   uint32_t index;
   t_osi_result result =
       osi_xsi_impl_get_port_index(simulation_data, port, &index);
@@ -372,7 +374,8 @@ t_osi_result osi_xsi_impl_put_value(t_osi_simulation_data simulation_data,
   t_osi_xsi_simulator* simulator = xsi_simulation_data->simulator;
   xsiHandle handle = xsi_simulation_data->handle;
 
-  simulator->xsi_put_value(handle, (int32_t)index, value);
+  // I think it is fine to discard the const qualifier
+  simulator->xsi_put_value(handle, (int32_t)index, (t_osi_vecval*)value);
 
   if (simulator->xsi_get_status(handle) != xsiNormal) {
     return (t_osi_result){
@@ -390,7 +393,8 @@ t_osi_result osi_xsi_impl_put_value(t_osi_simulation_data simulation_data,
 }
 
 t_osi_result osi_xsi_impl_get_value(t_osi_simulation_data simulation_data,
-                                    const t_osi_port port, t_osi_vecval* value) {
+                                    const t_osi_port port,
+                                    t_osi_vecval* value) {
   uint32_t index;
   t_osi_result result =
       osi_xsi_impl_get_port_index(simulation_data, port, &index);
