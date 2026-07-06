@@ -59,18 +59,18 @@ typedef t_osi_result (*t_fp_osi_get_port_direction)(t_osi_simulation_data,
                                                     t_osi_port,
                                                     t_osi_port_direction*);
 typedef t_osi_result (*t_fp_osi_get_port_width)(t_osi_simulation_data,
-                                                t_osi_port, uint32_t*);
+                                                const t_osi_port, uint32_t*);
 typedef t_osi_result (*t_fp_osi_get_port_by_name)(t_osi_simulation_data,
                                                   const char*, t_osi_port*);
 typedef t_osi_result (*t_fp_osi_get_port_by_index)(t_osi_simulation_data,
                                                    uint32_t, t_osi_port*);
 typedef t_osi_result (*t_fp_osi_get_port_name)(t_osi_simulation_data,
-                                               t_osi_port, const char**);
+                                               const t_osi_port, const char**);
 typedef t_osi_result (*t_fp_osi_get_port_index)(t_osi_simulation_data,
-                                                t_osi_port, uint32_t*);
+                                                const t_osi_port, uint32_t*);
 typedef t_osi_result (*t_fp_osi_put_value)(t_osi_simulation_data, t_osi_port,
-                                           t_osi_vecval*);
-typedef t_osi_result (*t_fp_osi_get_value)(t_osi_simulation_data, t_osi_port,
+                                           const t_osi_vecval*);
+typedef t_osi_result (*t_fp_osi_get_value)(t_osi_simulation_data, const t_osi_port,
                                            t_osi_vecval*);
 typedef t_osi_result (*t_fp_osi_advance)(t_osi_simulation_data, uint64_t);
 typedef t_osi_result (*t_fp_osi_evaluate)(t_osi_simulation_data);
@@ -358,12 +358,8 @@ t_osi_result osi_xsi_impl_get_port_name(t_osi_simulation_data simulation_data,
   };
 }
 
-typedef t_osi_result (*t_fp_osi_put_value)(t_osi_simulation_data, t_osi_port,
-                                           t_osi_vecval*);
-typedef t_osi_result (*t_fp_osi_get_value)(t_osi_simulation_data, t_osi_port,
-                                           t_osi_vecval*);
 t_osi_result osi_xsi_impl_put_value(t_osi_simulation_data simulation_data,
-                                    t_osi_port port, t_osi_vecval* value) {
+                                    t_osi_port port, const t_osi_vecval* value) {
   uint32_t index;
   t_osi_result result =
       osi_xsi_impl_get_port_index(simulation_data, port, &index);
@@ -394,7 +390,7 @@ t_osi_result osi_xsi_impl_put_value(t_osi_simulation_data simulation_data,
 }
 
 t_osi_result osi_xsi_impl_get_value(t_osi_simulation_data simulation_data,
-                                    t_osi_port port, t_osi_vecval* value) {
+                                    const t_osi_port port, t_osi_vecval* value) {
   uint32_t index;
   t_osi_result result =
       osi_xsi_impl_get_port_index(simulation_data, port, &index);
