@@ -3,7 +3,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <string.h>
+#include <sys/stat.h>
 
 #ifdef OSI_IMPLEMENT_XSI
 #include <xsi.h>
@@ -506,14 +506,15 @@ t_osi_result osi_create_xsi_simulator(const char* simkernel_libname,
       .arg = NULL,
   };
 #else
-  simulator->simkernel_library = dlopen(simkernel_libname, RTLD_LAZY | RTLD_GLOBAL);
+  simulator->simkernel_library =
+      dlopen(simkernel_libname, RTLD_LAZY | RTLD_GLOBAL);
   char* err = dlerror();
   if (err) {
     return (t_osi_result){.kind = DL_ERROR, .msg = err, .arg = NULL};
   }
 
 #define OSI_LOAD_XSI_FUNC(x)                                                   \
-  *(void**)(&simulator->x) = dlsym(simulator->simkernel_library, #x);                     \
+  *(void**)(&simulator->x) = dlsym(simulator->simkernel_library, #x);          \
   err = dlerror();                                                             \
   if (err) {                                                                   \
     return (t_osi_result){.kind = DL_ERROR, .msg = err, .arg = NULL};          \
@@ -587,6 +588,15 @@ t_osi_result osi_start_xsi_simulation(t_osi_xsi_simulator* simulator,
       .arg = NULL,
   };
 #else
+  struct stat s;
+  if (stat("xsim.dir", &s) != 0 || !S_ISDIR(s.st_mode)) {
+    return (t_osi_result){
+        .kind = SIM_ERROR,
+        .msg = "Directory \"xsim.dir\" not found. You are probably doing "
+               "something wrong.",
+        .arg = NULL,
+    };
+  }
   dlerror(); // Clear errors
 
   void* design_dl = dlopen(design_libname, RTLD_LAZY | RTLD_GLOBAL);
